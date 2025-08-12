@@ -1,0 +1,63 @@
+// App.jsx
+import React, { useState, useEffect } from "react";
+
+export default function App() {
+  const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then(setProducts);
+  }, []);
+
+  function addToCart(product) {
+    setCart((c) => {
+      const existing = c.find((item) => item.id === product.id);
+      if (existing) {
+        return c.map((item) =>
+          item.id === product.id ? { ...item, qty: item.qty + 1 } : item
+        );
+      }
+      return [...c, { ...product, qty: 1 }];
+    });
+  }
+
+  function removeFromCart(id) {
+    setCart((c) => c.filter((item) => item.id !== id));
+  }
+
+  return (
+    <div style={{ padding: 20, fontFamily: "Arial" }}>
+      <h1>Mini Amazon</h1>
+      <h2>Products</h2>
+      <div style={{ display: "flex", gap: 10 }}>
+        {products.map((p) => (
+          <div
+            key={p.id}
+            style={{ border: "1px solid #ccc", padding: 10, width: 150 }}
+          >
+            <h4>{p.name}</h4>
+            <p>${p.price.toFixed(2)}</p>
+            <button onClick={() => addToCart(p)}>Add to Cart</button>
+          </div>
+        ))}
+      </div>
+
+      <h2>Cart</h2>
+      {cart.length === 0 && <p>Cart is empty</p>}
+      {cart.map((item) => (
+        <div key={item.id} style={{ marginBottom: 10 }}>
+          {item.name} x {item.qty} = ${(item.price * item.qty).toFixed(2)}{" "}
+          <button onClick={() => removeFromCart(item.id)}>Remove</button>
+        </div>
+      ))}
+      {cart.length > 0 && (
+        <h3>
+          Total: $
+          {cart.reduce((sum, item) => sum + item.price * item.qty, 0).toFixed(2)}
+        </h3>
+      )}
+    </div>
+  );
+}
